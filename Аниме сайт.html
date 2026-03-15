@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Onni - Работает везде</title>
+    <style>
+        body { background: #050505; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+        .search-box { margin-bottom: 30px; }
+        input { padding: 10px; width: 250px; border-radius: 5px; border: none; }
+        button { padding: 10px; background: #ff007a; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+        .card { width: 180px; background: #111; padding: 10px; border-radius: 10px; border: 1px solid #333; }
+        .card img { width: 100%; border-radius: 8px; }
+        #player { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999; }
+        iframe { width: 80%; height: 80%; margin-top: 5%; border: 2px solid #ff007a; }
+    </style>
+</head>
+<body>
+
+    <h1>ONNI <span style="font-size: 12px; color: #ff007a;">v2.0</span></h1>
+
+    <div class="search-box">
+        <input type="text" id="q" placeholder="Напиши: Naruto">
+        <button onclick="find()">Найти аниме</button>
+    </div>
+
+    <div class="grid" id="out">
+        <p>Введите название и нажмите кнопку</p>
+    </div>
+
+    <div id="player">
+        <button onclick="document.getElementById('player').style.display='none'; document.querySelector('iframe').src='';" style="margin: 10px;">ЗАКРЫТЬ</button><br>
+        <iframe src="" allowfullscreen></iframe>
+    </div>
+
+    <script>
+        async function find() {
+            const query = document.getElementById('q').value;
+            const out = document.getElementById('out');
+            out.innerHTML = "Ищу...";
+
+            try {
+                // Используем прямую ссылку на API. Если блокирует - пробуем альтернативный метод.
+                const url = `https://shikimori.one/api/animes?search=${encodeURIComponent(query)}&limit=8`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                out.innerHTML = "";
+                data.forEach(a => {
+                    const div = document.createElement('div');
+                    div.className = 'card';
+                    div.innerHTML = `
+                        <img src="https://shikimori.one${a.image.original}">
+                        <p>${a.russian || a.name}</p>
+                        <button onclick="play('${a.name}')">Смотреть</button>
+                    `;
+                    out.appendChild(div);
+                });
+            } catch (e) {
+                out.innerHTML = "Ошибка доступа! Браузер блокирует запрос. Попробуй открыть этот файл через сайт Codepen.io или включи VPN.";
+            }
+        }
+
+        function play(name) {
+            const p = document.getElementById('player');
+            const f = p.querySelector('iframe');
+            // Самый надежный способ для локального файла - поиск по базе
+            f.src = `https://www.youtube.com/embed?listType=search&list=${name}+anime+1+episode`;
+            p.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
